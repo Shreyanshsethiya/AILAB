@@ -1,0 +1,74 @@
+import random
+import math
+
+def print_board(state):
+    size = len(state)
+    for i in range(size):
+        row = ['.'] * size
+        row[state[i]] = 'Q'
+        print(' '.join(row))
+    print()
+
+def calculate_conflicts(state):
+    conflicts = 0
+    size = len(state)
+    for i in range(size):
+        for j in range(i + 1, size):
+            if state[i] == state[j] or abs(state[i] - state[j]) == abs(i - j):
+                conflicts += 1
+    return conflicts
+
+def random_state(size):
+    return [random.randint(0, size - 1) for _ in range(size)]
+
+def neighbor(state):
+    new_state = state[:]
+    idx = random.randint(0, len(state) - 1)
+    new_state[idx] = random.randint(0, len(state) - 1)
+    return new_state
+
+def simulated_annealing(size, initial_temp, cooling_rate):
+    current_state = random_state(size)
+    current_conflicts = calculate_conflicts(current_state)
+    temperature = initial_temp
+
+    while temperature > 1:
+        new_state = neighbor(current_state)
+        new_conflicts = calculate_conflicts(new_state)
+
+        # If new state is better, accept it
+        if new_conflicts < current_conflicts:
+            current_state, current_conflicts = new_state, new_conflicts
+        else:
+            # Accept with a probability based on temperature
+            acceptance_probability = math.exp((current_conflicts - new_conflicts) / temperature)
+            if random.random() < acceptance_probability:
+                current_state, current_conflicts = new_state, new_conflicts
+
+        temperature *= cooling_rate
+
+    return current_state
+
+def main():
+    size = 8
+    initial_temp = 1000
+    cooling_rate = 0.995
+
+    solution = simulated_annealing(size, initial_temp, cooling_rate)
+    print("Solution found:")
+    print_board(solution)
+    print("Conflicts:", calculate_conflicts(solution))
+
+if __name__ == "__main__":
+    main()
+Solution found:
+Q . . . . . . .
+. . . . . . . Q
+. . . . . Q . .
+. Q . . . . . .
+. . Q . . . . .
+. . . . . . . Q
+. . . . . Q . .
+. . . Q . . . .
+
+Conflicts: 3
